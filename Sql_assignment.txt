@@ -1,0 +1,423 @@
+1. List all columns of OrderItem table.
+
+mysql> describe order_item;
++--------------------+---------------+------+-----+---------+-------+
+| Field              | Type          | Null | Key | Default | Extra |
++--------------------+---------------+------+-----+---------+-------+
+| ORDER_ID           | varchar(40)   | NO   | PRI | NULL    |       |
+| ORDER_ITEM_SEQ_ID  | varchar(40)   | NO   | PRI | NULL    |       |
+| ORDER_PART_SEQ_ID  | varchar(40)   | YES  |     | NULL    |       |
+| PRODUCT_ID         | varchar(40)   | YES  | MUL | NULL    |       |
+| ITEM_DESCRIPTION   | varchar(255)  | YES  |     | NULL    |       |
+| QUANTITY           | decimal(26,6) | YES  |     | NULL    |       |
+| UNIT_AMOUNT        | decimal(25,5) | YES  |     | NULL    |       |
+| ITEM_TYPE_ENUM_ID  | varchar(40)   | YES  |     | NULL    |       |
+| PARENT_ITEM_SEQ_ID | varchar(40)   | YES  |     | NULL    |       |
++--------------------+---------------+------+-----+---------+-------+
+
+2. List the person details for all females.
+
+mysql> select first_name, middle_name, last_name,gender,birth_date, marital_status_enum_id as marital_status, employment_status_enum_id as employment_status,occupation from person where gender = "f";
++------------+-------------+-----------+--------+------------+----------------+-------------------+-------------------+
+| first_name | middle_name | last_name | gender | birth_date | marital_status | employment_status | occupation        |
++------------+-------------+-----------+--------+------------+----------------+-------------------+-------------------+
+| Lily       | J           | Brown     | F      | 1998-06-11 | MarsDivorced   | EmpsPartTime      | Software Engineer |
+| John       | J           | Norvig    | F      | 1998-06-11 | MarsSingle     | EmpsFullTime      | Software Engineer |
++------------+-------------+-----------+--------+------------+----------------+-------------------+-------------------+
+2 rows in set (0.00 sec)
+
+3. List the Order Header table contents so that the latest placed order appears in the top.
+mysql> select Order_name,placed_date from order_header order by placed_date desc;
++--------------+-------------------------+
+| Order_name   | placed_date             |
++--------------+-------------------------+
+| Test Order 7 | 2022-01-09 00:00:00.000 |
+| Test Order 3 | 2021-04-17 00:00:00.000 |
+| Test Order 4 | 2020-04-19 00:00:00.000 |
+| Test Order 1 | 2020-04-17 00:00:00.000 |
+| Test Order 2 | 2020-04-17 00:00:00.000 |
+| Test Order 5 | 2020-03-17 00:00:00.000 |
+| Test Order 6 | 2019-04-24 00:00:00.000 |
++--------------+-------------------------+
+7 rows in set (0.00 sec)
+
+4. List the Person details with MarsMarried marital status.
+
+mysql> select first_name, middle_name, last_name,gender,birth_date, marital_status_enum_id as "marital status", employment_status_enum_id as "employment status" from person where marital_status_enum_id = "MarsMarried";
++------------+-------------+-----------+--------+------------+----------------+-------------------+
+| first_name | middle_name | last_name | gender | birth_date | marital status | employment status |
++------------+-------------+-----------+--------+------------+----------------+-------------------+
+| Jack       | John        | Smith     | M      | 1999-09-14 | MarsMarried    | EmpsFullTime      |
+| Charlie    | Jack        | William   | M      | 1992-04-22 | MarsMarried    | EmpsSelf          |
+| James      | W           | Evans     | M      | 1993-05-20 | MarsMarried    | EmpsFullTime      |
++------------+-------------+-----------+--------+------------+----------------+-------------------+
+3 rows in set (0.00 sec)
+
+5. Output the count of Order Parts for each shipment Method Enum Id.
+mysql> select SHIPMENT_METHOD_ENUM_ID,count(part_name) from order_part group by SHIPMENT_METHOD_ENUM_ID;
+	
++-------------------------+------------------+
+| SHIPMENT_METHOD_ENUM_ID | count(part_name) |
++-------------------------+------------------+
+| ShMthGround             |                7 |
+| ShMthNextDay            |                5 |
++-------------------------+------------------+
+2 rows in set (0.00 sec)
+
+6. List the Order Header details with grand total greater than 50.
+mysql> select order_id, order_name from order_header where grand_total > 50;
++----------+--------------+
+| order_id | order_name   |
++----------+--------------+
+| 100051   | Test Order 1 |
+| 100061   | Test Order 6 |
+| 100102   | Test Order 3 |
+| 100255   | Test Order 5 |
++----------+--------------+
+4 rows in set (0.00 sec)
+
+7. List the Person details who have not placed any orders.
+
+(USING	SUB-QUERY)
+
+mysql> select first_name, middle_name,last_name,party_id from person where party_id NOT IN(select customer_party_id from order_part);
++------------+-------------+-----------+-----------+
+| first_name | middle_name | last_name | party_id  |
++------------+-------------+-----------+-----------+
+| Jack       | John        | Smith     | CustDemo2 |
++------------+-------------+-----------+-----------+
+
+(USING JOIN)
+
+mysql> select first_name, middle_name,last_name,party_id from person p LEFT OUTER JOIN order_part op on p.party_id = op.customer_party_id where customer_party_id is NULL;
++------------+-------------+-----------+-----------+
+| first_name | middle_name | last_name | party_id  |
++------------+-------------+-----------+-----------+
+| Jack       | John        | Smith     | CustDemo2 |
++------------+-------------+-----------+-----------+
+1 row in set (0.00 sec)
+
+
+8. List the Person details whose first name starts with ‘J’ and third character is ’h’.
+
+
+mysql> select first_name, middle_name,last_name,party_id from person WHERE first_name like "J_h%";
++------------+-------------+-----------+-----------+
+| first_name | middle_name | last_name | party_id  |
++------------+-------------+-----------+-----------+
+| John       | J           | Norvig    | CustDemo4 |
++------------+-------------+-----------+-----------+
+1 row in set (0.00 sec)
+
+
+9 List all Order Item details for the order with orderId, 100102 and orderPartSeqId, 01.
+
+mysql> select order_id, order_item_seq_id as "Item Seq id",order_part_seq_id as "part seq id",quantity,unit_amount from order_item where order_id= "100102" and order_part_seq_id = "1";;
++----------+-------------+-------------+----------+-------------+
+| order_id | Item Seq id | part seq id | quantity | unit_amount |
++----------+-------------+-------------+----------+-------------+
+| 100102   | 1           | 1           | 3.000000 |    16.99000 |
+| 100102   | 2           | 1           | 3.000000 |    18.99000 |
+| 100102   | 3           | 1           | 3.000000 |     2.33000 |
++----------+-------------+-------------+----------+-------------+
+3 rows in set (0.00 sec)
+
+10. List the Order Item details for only those products for which chargeShipping is set to "Y".
+
+(***USING NESTED QUERY***)
+
+mysql> select order_id, order_item_seq_id as "Item Seq id",order_part_seq_id as "part seq id",quantity,unit_amount,product_id from order_item
+where product_id IN (select product_id from product where charge_shipping = "y");
++----------+-------------+-------------+----------+-------------+-------------+
+| order_id | Item Seq id | part seq id | quantity | unit_amount | product_id  |
++----------+-------------+-------------+----------+-------------+-------------+
+| 100051   | 2           | 2           | 3.000000 |    18.99000 | DEMO_UNIT_2 |
+| 100061   | 1           | 1           | 2.000000 |    15.99000 | DEMO_UNIT_2 |
+| 100064   | 2           | 2           | 2.000000 |     6.33000 | DEMO_UNIT_2 |
+| 100102   | 2           | 1           | 3.000000 |    18.99000 | DEMO_UNIT_2 |
+| 100052   | 1           | 1           | 1.000000 |    14.99000 | DEMO_UNIT_3 |
+| 100102   | 4           | 2           | 1.000000 |    14.99000 | DEMO_UNIT_3 |
+| 100153   | 1           | 1           | 1.000000 |    14.99000 | DEMO_UNIT_3 |
+| 100153   | 3           | 1           | 1.000000 |    12.99000 | DEMO_UNIT_4 |
+| 100255   | 1           | 1           | 3.000000 |    12.99000 | DEMO_UNIT_4 |
+| 100061   | 2           | 2           | 1.000000 |    55.09000 | DEMO_UNIT_5 |
+| 100064   | 1           | 1           | 3.000000 |    12.07000 | DEMO_UNIT_5 |
+| 100255   | 3           | 2           | 3.000000 |    10.99000 | DEMO_UNIT_5 |
++----------+-------------+-------------+----------+-------------+-------------+
+12 rows in set (0.00 sec)
+
+(***USING JOINS***)
+
+mysql> select order_id, order_item_seq_id as "Item Seq id",order_part_seq_id as "part seq id",quantity,unit_amount, charge_shipping from order_item OI JOIN product P on OI.product_id =P.product_id where charge_shipping="Y";
++----------+-------------+-------------+----------+-------------+-----------------+
+| order_id | Item Seq id | part seq id | quantity | unit_amount | charge_shipping |
++----------+-------------+-------------+----------+-------------+-----------------+
+| 100051   | 2           | 2           | 3.000000 |    18.99000 | Y               |
+| 100061   | 1           | 1           | 2.000000 |    15.99000 | Y               |
+| 100064   | 2           | 2           | 2.000000 |     6.33000 | Y               |
+| 100102   | 2           | 1           | 3.000000 |    18.99000 | Y               |
+| 100052   | 1           | 1           | 1.000000 |    14.99000 | Y               |
+| 100102   | 4           | 2           | 1.000000 |    14.99000 | Y               |
+| 100153   | 1           | 1           | 1.000000 |    14.99000 | Y               |
+| 100153   | 3           | 1           | 1.000000 |    12.99000 | Y               |
+| 100255   | 1           | 1           | 3.000000 |    12.99000 | Y               |
+| 100061   | 2           | 2           | 1.000000 |    55.09000 | Y               |
+| 100064   | 1           | 1           | 3.000000 |    12.07000 | Y               |
+| 100255   | 3           | 2           | 3.000000 |    10.99000 | Y               |
++----------+-------------+-------------+----------+-------------+-----------------+
+12 rows in set (0.00 sec)
+
+
+11. Find order parts with part total less than equals to 20.
+mysql> select order_id , part_total from order_part where part_total<=20;
++----------+------------+
+| order_id | part_total |
++----------+------------+
+| 100051   |    16.9900 |
+| 100052   |    16.3200 |
+| 100064   |    12.6600 |
+| 100102   |    14.9900 |
++----------+------------+
+4 rows in set (0.00 sec)
+
+12. List the Person details whose employment status is either EmpsSelf or EmpsFullTime without using the OR operator.
+
+mysql> select first_name,Middle_name,last_name, employment_status_enum_id from person where employment_status_enum_id in ("empsfulltime","empsself");
++------------+-------------+-----------+---------------------------+
+| first_name | Middle_name | last_name | employment_status_enum_id |
++------------+-------------+-----------+---------------------------+
+| Joe        | Q           | Public    | EmpsFullTime              |
+| Jack       | John        | Smith     | EmpsFullTime              |
+| John       | J           | Norvig    | EmpsFullTime              |
+| Charlie    | Jack        | William   | EmpsSelf                  |
+| James      | W           | Evans     | EmpsFullTime              |
++------------+-------------+-----------+---------------------------+
+5 rows in set (0.00 sec)
+
+13.  Find the Order details assigned to the facility with ZIRET_WH value. Output the below fields for this query:
+	orderId
+	orderPartSeqId
+	facilityId
+	partName
+	customerPartyId
+	productId
+	itemDescription
+	quantity
+mysql> select OI.order_id, OP.order_part_seq_id, OP.facility_id,part_name,customer_party_id,P.product_id,description,quantity from order_item
+OI join product p on OI.product_id = p.product_id join order_part OP on OI.order_id = OP.order_id where facility_id = "Ziret_wh";
++----------+-------------------+-------------+-----------+-------------------+-------------+---------------------------------+----------+
+| order_id | order_part_seq_id | facility_id | part_name | customer_party_id | product_id  | description                     | quantity |
++----------+-------------------+-------------+-----------+-------------------+-------------+---------------------------------+----------+
+| 100051   | 1                 | ZIRET_WH    | #101      | CustDemo1         | DEMO_UNIT_1 | This is Demo Product Unit One   | 1.000000 |
+| 100102   | 1                 | ZIRET_WH    | #104      | CustDemo3         | DEMO_UNIT_1 | This is Demo Product Unit One   | 3.000000 |
+| 100051   | 1                 | ZIRET_WH    | #101      | CustDemo1         | DEMO_UNIT_2 | This is Demo Product Unit Two   | 3.000000 |
+| 100061   | 1                 | ZIRET_WH    | #101      | CustDemo6         | DEMO_UNIT_2 | This is Demo Product Unit Two   | 2.000000 |
+| 100064   | 2                 | ZIRET_WH    | #106      | CustDemo6         | DEMO_UNIT_2 | This is Demo Product Unit Two   | 2.000000 |
+| 100102   | 1                 | ZIRET_WH    | #104      | CustDemo3         | DEMO_UNIT_2 | This is Demo Product Unit Two   | 3.000000 |
+| 100052   | 1                 | ZIRET_WH    | #103      | CustDemo1         | DEMO_UNIT_3 | This is Demo Product Unit Three | 1.000000 |
+| 100102   | 1                 | ZIRET_WH    | #104      | CustDemo3         | DEMO_UNIT_3 | This is Demo Product Unit Three | 1.000000 |
+| 100153   | 1                 | ZIRET_WH    | #106      | CustDemo4         | DEMO_UNIT_3 | This is Demo Product Unit Three | 1.000000 |
+| 100153   | 1                 | ZIRET_WH    | #106      | CustDemo4         | DEMO_UNIT_4 | This is Demo Product Unit Four  | 1.000000 |
+| 100255   | 1                 | ZIRET_WH    | #107      | CustDemo5         | DEMO_UNIT_4 | This is Demo Product Unit Four  | 3.000000 |
+| 100061   | 1                 | ZIRET_WH    | #101      | CustDemo6         | DEMO_UNIT_5 | This is Demo Product Unit Five  | 1.000000 |
+| 100064   | 2                 | ZIRET_WH    | #106      | CustDemo6         | DEMO_UNIT_5 | This is Demo Product Unit Five  | 3.000000 |
+| 100255   | 1                 | ZIRET_WH    | #107      | CustDemo5         | DEMO_UNIT_5 | This is Demo Product Unit Five  | 3.000000 |
++----------+-------------------+-------------+-----------+-------------------+-------------+---------------------------------+----------+
+14 rows in set (0.00 sec)
+
+14. Output the sum of the grandTotal from Order Header table for each placed date.
+
+mysql> select placed_date,sum(grand_total) from order_header group by placed_date;
++-------------------------+------------------+
+| placed_date             | sum(grand_total) |
++-------------------------+------------------+
+| 2019-04-24 00:00:00.000 |          87.0700 |
+| 2020-03-17 00:00:00.000 |          75.9300 |
+| 2020-04-17 00:00:00.000 |          94.2700 |
+| 2020-04-19 00:00:00.000 |          31.6400 |
+| 2021-04-17 00:00:00.000 |         129.9200 |
+| 2022-01-09 00:00:00.000 |          48.8700 |
++-------------------------+------------------+
+6 rows in set (0.00 sec)
+
+15. List the Order Header records where grand total is greater than highest grand total of the order placed on 2020-04-17.
+
+mysql> select order_id , order_name,grand_total from order_header where grand_total>(select max(grand_total) from order_header where placed_date="2020-04-17 00:00:00.000");
++----------+--------------+-------------+
+| order_id | order_name   | grand_total |
++----------+--------------+-------------+
+| 100061   | Test Order 6 |     87.0700 |
+| 100102   | Test Order 3 |    129.9200 |
++----------+--------------+-------------+
+2 rows in set (0.00 sec)
+
+
+16. Output the sum of the grandTotal from Order Header table for each placed date where total sum is greater than 60.
+mysql> select placed_date,sum(grand_total) from order_header group by placed_date having sum(grand_total)>60;
++-------------------------+------------------+
+| placed_date             | sum(grand_total) |
++-------------------------+------------------+
+| 2019-04-24 00:00:00.000 |          87.0700 |
+| 2020-03-17 00:00:00.000 |          75.9300 |
+| 2020-04-17 00:00:00.000 |          94.2700 |
+| 2021-04-17 00:00:00.000 |         129.9200 |
++-------------------------+------------------+
+4 rows in set (0.00 sec)
+
+17. Output the Person's party Id, first name, last name and orderId for all customers who have placed orders on 2020-04-17.
+
+mysql> select party_id,first_name,last_name,oh.order_id from order_part op JOIN person p on party_id =customer_party_id JOIN order_header OH o
+n op.order_id = OH.order_id where placed_date = "2020-04-17 00:00:00.000";
++-----------+------------+-----------+----------+
+| party_id  | first_name | last_name | order_id |
++-----------+------------+-----------+----------+
+| CustDemo1 | Joe        | Public    | 100051   |
+| CustDemo1 | Joe        | Public    | 100051   |
+| CustDemo1 | Joe        | Public    | 100052   |
++-----------+------------+-----------+----------+
+3 rows in set (0.00 sec)
+
+18. List the Person details whose order status in Order Part table is OrderApproved using EXISTS operator.
+
+mysql> select first_name,last_name,party_id from person where  exists (select customer_party_id from order_part where person.party_id = order_part.customer_party_id and  status_id = "OrderApproved");
++------------+-----------+-----------+
+| first_name | last_name | party_id  |
++------------+-----------+-----------+
+| Joe        | Public    | CustDemo1 |
+| John       | Norvig    | CustDemo4 |
+| Charlie    | William   | CustDemo5 |
+| James      | Evans     | CustDemo6 |
++------------+-----------+-----------+
+4 rows in set (0.00 sec)
+
+19. List the Order Header details for highest grandTotal for each placed date.
+
+mysql> select placed_date,max(grand_total) from order_header group by placed_date;
++-------------------------+------------------+
+| placed_date             | max(grand_total) |
++-------------------------+------------------+
+| 2019-04-24 00:00:00.000 |          87.0700 |
+| 2020-03-17 00:00:00.000 |          75.9300 |
+| 2020-04-17 00:00:00.000 |          77.9500 |
+| 2020-04-19 00:00:00.000 |          31.6400 |
+| 2021-04-17 00:00:00.000 |         129.9200 |
+| 2022-01-09 00:00:00.000 |          48.8700 |
++-------------------------+------------------+
+6 rows in set (0.00 sec)
+
+20. Find the count of order parts for each Person. Output the below details for this query:
+	partyId
+	firstName
+	lastName
+	count
+(Not sure)
+mysql> select party_id,first_name,last_name, count(party_id) from order_part op JOIN person p on party_id = customer_party_id group by party_id ;
++-----------+------------+-----------+-----------------+
+| party_id  | first_name | last_name | count(party_id) |
++-----------+------------+-----------+-----------------+
+| CustDemo1 | Joe        | Public    |               3 |
+| CustDemo3 | Lily       | Brown     |               2 |
+| CustDemo4 | John       | Norvig    |               1 |
+| CustDemo5 | Charlie    | William   |               2 |
+| CustDemo6 | James      | Evans     |               4 |
++-----------+------------+-----------+-----------------+
+5 rows in set (0.00 sec)
+
+21. Output the customerPartyId and highest order grandTotal for each customer.
+
+mysql> select customer_party_id , max(grand_total) from order_header oH join order_part OP on OH.order_id = OP.order_id group by customer_party_id;
++-------------------+------------------+
+| customer_party_id | max(grand_total) |
++-------------------+------------------+
+| CustDemo1         |          77.9500 |
+| CustDemo3         |         129.9200 |
+| CustDemo4         |          31.6400 |
+| CustDemo5         |          75.9300 |
+| CustDemo6         |          87.0700 |
++-------------------+------------------+
+5 rows in set (0.00 sec)
+
+
+22. List the unique order Ids for the Order Headers with more than one Order Part.
+
+mysql> select distinct order_id from order_part where part_total>1.0;
++----------+
+| order_id |
++----------+
+| 100051   |
+| 100052   |
+| 100061   |
+| 100064   |
+| 100102   |
+| 100153   |
+| 100255   |
++----------+
+7 rows in set (0.00 sec)
+
+23.  List all Order Header details whose grandTotal is greater than the average grandTotal for all orders placed on 2020-04-17.
+
+mysql> select order_id , order_name,grand_total from order_header where grand_total>(select AVG(grand_total) from order_header where placed_date="2020-04-17 00:00:00.000");
++----------+--------------+-------------+
+| order_id | order_name   | grand_total |
++----------+--------------+-------------+
+| 100051   | Test Order 1 |     77.9500 |
+| 100061   | Test Order 6 |     87.0700 |
+| 100064   | Test Order 7 |     48.8700 |
+| 100102   | Test Order 3 |    129.9200 |
+| 100255   | Test Order 5 |     75.9300 |
++----------+--------------+-------------+
+5 rows in set (0.00 sec)
+
+
+24. List the ItemSalesTax Order Item Details for each order.
+
+
+25. List the below Order Information for the orderId, 100153.
+	orderId
+	orderPartSeqId
+	customerPartyId
+	firstName
+	lastName
+	placedDate
+	orderItemSeqId
+	productId
+	itemDescription
+	unitAmount
+	quantity
+	partTotal
+	grandTotal
+
+mysql> select op.order_id,op.order_part_seq_id, customer_party_id,first_name,last_name,placed_date,order_item_seq_id,p.product_id,Description, unit_amount,quantity,part_total,grand_total from product p JOIN order_item oi on p.product_id = oi.product_id JOIN order_part op on oi.order_id =op.order_id JOIN order_header oh on oi.order_id = oh.order_id JOIN person on person.party_id = customer_party_id    where op.order_id = "1001
++----------+-------------------+-------------------+------------+-----------+-------------------------+-------------------+-------------+---------------------------------+-------------+----------+------------+-------------+
+| order_id | order_part_seq_id | customer_party_id | first_name | last_name | placed_date             | order_item_seq_id | product_id  | Description                     | unit_amount | quantity | part_total | grand_total |
++----------+-------------------+-------------------+------------+-----------+-------------------------+-------------------+-------------+---------------------------------+-------------+----------+------------+-------------+
+| 100153   | 1                 | CustDemo4         | John       | Norvig    | 2020-04-19 00:00:00.000 | 1                 | DEMO_UNIT_3 | This is Demo Product Unit Three |    14.99000 | 1.000000 |    31.6400 |     31.6400 |
+| 100153   | 1                 | CustDemo4         | John       | Norvig    | 2020-04-19 00:00:00.000 | 3                 | DEMO_UNIT_4 | This is Demo Product Unit Four  |    12.99000 | 1.000000 |    31.6400 |     31.6400 |
++----------+-------------------+-------------------+------------+-----------+-------------------------+-------------------+-------------+---------------------------------+-------------+----------+------------+-------------+
+
+
+26.  List the below Order details for the customer partyId, CustDemo1.
+	orderId
+	orderPartSeqId
+	orderName
+	partName
+	customerPartyId
+	facilityId
+	orderItemSeqId
+	productId
+	itemDescription
+	quantity
+	unitAmount
+	
+mysql> select op.order_id,op.order_part_seq_id,order_name,part_name, customer_party_id,facility_id,order_item_seq_id,p.product_id,Description,quantity, unit_amount from product p JOIN order_item oi on p.product_id = oi.product_id JOIN order_part op on oi.order_id =op.order_id JOIN order_header oh on oi.order_id = oh.order_id JOIN person on person.party_id = customer_party_id    where person.party_id = "CustDemo1";
++----------+-------------------+--------------+-----------+-------------------+-------------+-------------------+-------------+---------------------------------+----------+-------------+
+| order_id | order_part_seq_id | order_name   | part_name | customer_party_id | facility_id | order_item_seq_id | product_id  | Description                     | quantity | unit_amount |
++----------+-------------------+--------------+-----------+-------------------+-------------+-------------------+-------------+---------------------------------+----------+-------------+
+| 100051   | 1                 | Test Order 1 | #101      | CustDemo1         | ZIRET_WH    | 1                 | DEMO_UNIT_1 | This is Demo Product Unit One   | 1.000000 |    16.99000 |
+| 100051   | 2                 | Test Order 1 | #102      | CustDemo1         | ZIRET_WH_1  | 1                 | DEMO_UNIT_1 | This is Demo Product Unit One   | 1.000000 |    16.99000 |
+| 100051   | 1                 | Test Order 1 | #101      | CustDemo1         | ZIRET_WH    | 2                 | DEMO_UNIT_2 | This is Demo Product Unit Two   | 3.000000 |    18.99000 |
+| 100051   | 2                 | Test Order 1 | #102      | CustDemo1         | ZIRET_WH_1  | 2                 | DEMO_UNIT_2 | This is Demo Product Unit Two   | 3.000000 |    18.99000 |
+| 100052   | 1                 | Test Order 2 | #103      | CustDemo1         | ZIRET_WH    | 1                 | DEMO_UNIT_3 | This is Demo Product Unit Three | 1.000000 |    14.99000 |
++----------+-------------------+--------------+-----------+-------------------+-------------+-------------------+-------------+---------------------------------+----------+-------------+
+5 rows in set (0.00 sec)
+
